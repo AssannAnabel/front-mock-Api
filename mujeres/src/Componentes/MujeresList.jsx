@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
+import 'react-tabs/style/react-tabs.css';
+import '../Styles/MujeresList.css';
 
 const MujeresList = () => {
   const [women, setWomen] = useState([]);
@@ -58,63 +61,78 @@ const MujeresList = () => {
   };
 
   return (
-    <div>
-      <h1>Mujeres Bellas y Famosas</h1>
-      
-      <input
-        type="text"
-        placeholder="Buscar por nombre"
-        value={searchTerm}
-        onChange={(e) => setSearchTerm(e.target.value)}
-      />
-      <button onClick={handleSearch}>Buscar</button>
-      <button onClick={handleReset}>Volver</button>
-      
-      <div>
-        <input
-          type="text"
-          placeholder="Nombre"
-          value={newWoman.name}
-          onChange={(e) => setNewWoman({ ...newWoman, name: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Apellido"
-          value={newWoman.lastName}
-          onChange={(e) => setNewWoman({ ...newWoman, lastName: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Nacionalidad"
-          value={newWoman.nationality}
-          onChange={(e) => setNewWoman({ ...newWoman, nationality: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Historia"
-          value={newWoman.bio}
-          onChange={(e) => setNewWoman({ ...newWoman, bio: e.target.value })}
-        />
-        <input
-          type="text"
-          placeholder="Foto URL"
-          value={newWoman.photo}
-          onChange={(e) => setNewWoman({ ...newWoman, photo: e.target.value })}
-        />
-        <button onClick={handleCreate}>Crear</button>
+    <div className="container">
+      <div className="navbar">
+        <h1>Women who made history</h1>
       </div>
+      <div className="tabs-container">
+        <Tabs>
+          <TabList>
+            <Tab>Search</Tab>
+            <Tab>Create</Tab>
+          </TabList>
 
-      <ul>
+          <TabPanel>
+            <div className="search-container">
+              <input
+                type="text"
+                placeholder="Search by name"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <button onClick={handleSearch}>Search</button>
+              <button onClick={handleReset}>Return</button>
+            </div>
+          </TabPanel>
+
+          <TabPanel>
+            <div className="create-container">
+              <input
+                type="text"
+                placeholder="Name"
+                value={newWoman.name}
+                onChange={(e) => setNewWoman({ ...newWoman, name: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="LastName"
+                value={newWoman.lastName}
+                onChange={(e) => setNewWoman({ ...newWoman, lastName: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Nationality"
+                value={newWoman.nationality}
+                onChange={(e) => setNewWoman({ ...newWoman, nationality: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Bio"
+                value={newWoman.bio}
+                onChange={(e) => setNewWoman({ ...newWoman, bio: e.target.value })}
+              />
+              <input
+                type="text"
+                placeholder="Photo URL"
+                value={newWoman.photo}
+                onChange={(e) => setNewWoman({ ...newWoman, photo: e.target.value })}
+              />
+              <button onClick={handleCreate}>Create</button>
+            </div>
+          </TabPanel>
+        </Tabs>
+      </div>
+      <div className="card-grid">
         {filteredWomen.map(woman => (
-          <li key={woman.id}>
+          <div className="card" key={woman.id}>
+            <img src={woman.photo} alt={`${woman.name}`} />
             <h2>{woman.name} {woman.lastName}</h2>
             <p>{woman.nationality}</p>
             <p>{woman.bio}</p>
-            <img src={woman.photo} alt={`${woman.name}`} />
-            <button onClick={() => handleDelete(woman.id)}>Eliminar</button>
-          </li>
+            <button onClick={() => handleDelete(woman.id)}>Delete</button>
+          </div>
         ))}
-      </ul>
+      </div>
     </div>
   );
 };
