@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Tab, Tabs, TabList, TabPanel } from 'react-tabs';
 import 'react-tabs/style/react-tabs.css';
+import Swal from 'sweetalert2';
 import '../Styles/MujeresList.css';
 
 const MujeresList = () => {
@@ -8,6 +9,8 @@ const MujeresList = () => {
   const [filteredWomen, setFilteredWomen] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [newWoman, setNewWoman] = useState({ name: '', lastName: '', nationality: '', bio: '', photo: '' });
+  const [editingWoman, setEditingWoman] = useState(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   useEffect(() => {
     fetch('https://647dd4d6af984710854a6fcc.mockapi.io/mujeres')
@@ -28,8 +31,8 @@ const MujeresList = () => {
   };
 
   const handleReset = () => {
-    setFilteredWomen(women); 
-    setSearchTerm(''); 
+    setFilteredWomen(women);
+    setSearchTerm('');
   };
 
   const handleCreate = () => {
@@ -43,21 +46,58 @@ const MujeresList = () => {
         const updatedWomen = [...women, data];
         setWomen(updatedWomen);
         setFilteredWomen(updatedWomen);
-        setNewWoman({ name: '', lastName: '', nationality: '', bio: '', photo: '' }); // Restablecer inputs
+        setNewWoman({ name: '', lastName: '', nationality: '', bio: '', photo: '' });
       })
       .catch(error => console.error('Error creating data:', error));
   };
 
   const handleDelete = (id) => {
-    fetch(`https://647dd4d6af984710854a6fcc.mockapi.io/mujeres/${id}`, {
-      method: 'DELETE',
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+    }).then((result) => {
+      if (result.isConfirmed) {
+        fetch(`https://647dd4d6af984710854a6fcc.mockapi.io/mujeres/${id}`, {
+          method: 'DELETE',
+        })
+          .then(() => {
+            const updatedWomen = women.filter(woman => woman.id !== id);
+            setWomen(updatedWomen);
+            setFilteredWomen(updatedWomen);
+            Swal.fire('Deleted!', 'The entry has been deleted.', 'success');
+          })
+          .catch(error => {
+            console.error('Error deleting data:', error);
+            Swal.fire('Error!', 'There was an error deleting the entry.', 'error');
+          });
+      }
+    });
+  };
+
+  const handleEdit = (woman) => {
+    setEditingWoman(woman);
+    setIsModalOpen(true);
+  };
+
+  const handleUpdate = () => {
+    fetch(`https://647dd4d6af984710854a6fcc.mockapi.io/mujeres/${editingWoman.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingWoman),
     })
-      .then(() => {
-        const updatedWomen = women.filter(woman => woman.id !== id);
+      .then(response => response.json())
+      .then(data => {
+        const updatedWomen = women.map(woman => (woman.id === data.id ? data : woman));
         setWomen(updatedWomen);
         setFilteredWomen(updatedWomen);
+        setEditingWoman(null);
+        setIsModalOpen(false);
       })
-      .catch(error => console.error('Error deleting data:', error));
+      .catch(error => console.error('Error updating data:', error));
   };
 
   return (
@@ -122,6 +162,45 @@ const MujeresList = () => {
           </TabPanel>
         </Tabs>
       </div>
+      {isModalOpen && (
+        <div className="modal">
+          <div className="modal-content">
+            <h2>Edit Woman</h2>
+            <input
+              type="text"
+              placeholder="Name"
+              value={editingWoman.name}
+              onChange={(e) => setEditingWoman({ ...editingWoman, name: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="LastName"
+              value={editingWoman.lastName}
+              onChange={(e) => setEditingWoman({ ...editingWoman, lastName: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Nationality"
+              value={editingWoman.nationality}
+              onChange={(e) => setEditingWoman({ ...editingWoman, nationality: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Bio"
+              value={editingWoman.bio}
+              onChange={(e) => setEditingWoman({ ...editingWoman, bio: e.target.value })}
+            />
+            <input
+              type="text"
+              placeholder="Photo URL"
+              value={editingWoman.photo}
+              onChange={(e) => setEditingWoman({ ...editingWoman, photo: e.target.value })}
+            />
+            <button onClick={handleUpdate}>Ok</button>
+            <button onClick={() => setIsModalOpen(false)}>Cancel</button>
+          </div>
+        </div>
+      )}
       <div className="card-grid">
         {filteredWomen.map(woman => (
           <div className="card" key={woman.id}>
@@ -129,7 +208,8 @@ const MujeresList = () => {
             <h2>{woman.name} {woman.lastName}</h2>
             <p>{woman.nationality}</p>
             <p>{woman.bio}</p>
-            <button onClick={() => handleDelete(woman.id)}>Delete</button>
+            <button onClick={() => handleEdit(woman)}>Edit</button>
+            <button className="delete-button" onClick={() => handleDelete(woman.id)}>Delete</button>
           </div>
         ))}
       </div>
